@@ -52,7 +52,7 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
   // Date states
   const [selectedDate, setSelectedDate] = useState<string>('2026-08-18');
   const [selectedYear, setSelectedYear] = useState<number>(2026);
-  const [selectedMonth, setSelectedMonth] = useState<number>(08); // 1-12
+  const [selectedMonth, setSelectedMonth] = useState<number>(8); // 1-12
   const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('2026-2027');
 
   const [attendanceMap, setAttendanceMap] = useState<
@@ -76,7 +76,7 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
   // Key for daily local record lookups: `${selectedClassId}_${selectedDate}`
   const storageKey = `${selectedClassId}_${selectedDate}`;
 
- 
+  const studentAbsenceStats = useMemo(() => {
     // Calculate dynamically from savedAttendances for each student
     const result: Record<
       string,
@@ -84,10 +84,10 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
     > = {};
 
     students.forEach((s) => {
-      let absent = baseAbsences[s.id]?.count || 0;
-      const dates = [...(baseAbsences[s.id]?.dates || [])];
-      let permission = s.id === 's-001' ? 2 : 1;
-      let late = s.id === 's-003' ? 1 : 0;
+      let absent = 0;
+      const dates: string[] = [];
+      let permission = 0;
+      let late = 0;
 
       // Count across all savedAttendances
       Object.entries(savedAttendances).forEach(([key, records]) => {

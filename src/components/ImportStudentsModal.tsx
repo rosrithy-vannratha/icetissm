@@ -34,7 +34,7 @@ interface ImportStudentsModalProps {
   onImportStudents: (
     importedStudents: Omit<Student, 'id'>[],
     mode: 'append' | 'replace'
-  ) => void;
+  ) => Promise<void> | void;
 }
 
 type DuplicateStudent = {
@@ -536,7 +536,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
    * CONFIRM IMPORT
    * ---------------------------------------------------------
    */
-  const handleConfirmImport = () => {
+  const handleConfirmImport = async () => {
     if (
       validStudents.length === 0 ||
       isParsing ||
@@ -605,7 +605,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
     setIsImporting(true);
 
     try {
-      onImportStudents(
+      await onImportStudents(
         finalStudents,
         importMode
       );

@@ -14,7 +14,8 @@ import {
   Upload,
   Camera,
   Image as ImageIcon,
-  UserCheck
+  UserCheck,
+  DatabaseBackup
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { APP_ASSETS } from '../data/mockData';
@@ -26,8 +27,9 @@ interface SettingsModalProps {
   onToggleDarkMode: () => void;
   adminAvatar?: string;
   onUpdateAdminAvatar?: (url: string) => void;
-  onDeleteAllStudents?: () => void;
-  onResetSampleData?: () => void;
+  onDeleteAllStudents?: () => Promise<void> | void;
+  onResetSampleData?: () => Promise<void> | void;
+  onCreateBackup?: () => Promise<void> | void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -38,7 +40,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   adminAvatar,
   onUpdateAdminAvatar,
   onDeleteAllStudents,
-  onResetSampleData
+  onResetSampleData,
+  onCreateBackup
 }) => {
   const [schoolName, setSchoolName] = useState('វិទ្យាស្ថានគរុកោសល្យភាសាចិន');
   const [academicYear, setAcademicYear] = useState('2026-2027');
@@ -46,6 +49,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [showConfirmClearAll, setShowConfirmClearAll] = useState(false);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
+  const [backupStatus, setBackupStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -75,18 +79,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }, 800);
   };
 
-  const handleExecuteClearAll = () => {
+  const handleExecuteClearAll = async () => {
     if (onDeleteAllStudents) {
-      onDeleteAllStudents();
+      await onDeleteAllStudents();
     }
     setShowConfirmClearAll(false);
   };
 
-  const handleExecuteReset = () => {
+  const handleExecuteReset = async () => {
     if (onResetSampleData) {
-      onResetSampleData();
+      await onResetSampleData();
     }
     setShowConfirmReset(false);
+  };
+
+  const handleCreateBackup = async () => {
+    if (!onCreateBackup) return;
+    setBackupStatus('saving');
+    try {
+      await onCreateBackup();
+      setBackupStatus('saved');
+    } catch {
+      setBackupStatus('error');
+    }
   };
 
   return (
@@ -236,6 +251,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="text-[11px] font-bold uppercase tracking-wider text-rose-500 mb-1">
               តំបន់គ្រប់គ្រងទិន្នន័យ (Data Management)
             </div>
+
+            {onCreateBackup && (
+              <button
+                type="button"
+                onClick={handleCreateBackup}
+                disabled={backupStatus === 'saving'}
+                className="w-full px-3 py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-60"
+              >
+                <DatabaseBackup className="w-4 h-4" />
+                <span>
+                  {backupStatus === 'saving' && 'កំពុង Backup...'}
+                  {backupStatus === 'saved' && 'Backup បានជោគជ័យ'}
+                  {backupStatus === 'error' && 'Backup មិនបានជោគជ័យ'}
+                  {backupStatus === 'idle' && 'Backup ទិន្នន័យប្រព័ន្ធទាំងមូល'}
+                </span>
+              </button>
+            )}
 
             <div className="flex flex-col sm:flex-row gap-2">
               <button

@@ -20,6 +20,7 @@ import { AddStudentModal } from './components/AddStudentModal';
 import { ImportStudentsModal } from './components/ImportStudentsModal';
 import { SettingsModal } from './components/SettingsModal';
 import { motion, AnimatePresence } from 'motion/react';
+import { createSystemBackup, studentDatabase } from './services/database';
 
 export default function App() {
   // Authentication State - Default to Login Screen on initial entry
@@ -79,6 +80,7 @@ export default function App() {
   const [isAddStudentOpen, setIsAddStudentOpen] = useState<boolean>(false);
   const [isImportExcelOpen, setIsImportExcelOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [databaseError, setDatabaseError] = useState<string>('');
 
   // Data state with localStorage persistence
   const [students, setStudents] = useState<Student[]>(() => {
@@ -136,6 +138,33 @@ export default function App() {
       return {};
     }
   });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadStudents = async () => {
+      try {
+        const databaseStudents = await studentDatabase.list();
+        const storedStudents = databaseStudents.length > 0
+          ? databaseStudents
+          : await studentDatabase.import(students, 'replace');
+
+        if (!cancelled) {
+          setStudents(storedStudents);
+          setDatabaseError('');
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setDatabaseError(error instanceof Error ? error.message : 'មិនអាចទាញទិន្នន័យពី Database បានទេ។');
+        }
+      }
+    };
+
+    loadStudents();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Dark mode class sync
   useEffect(() => {
@@ -275,22 +304,33 @@ export default function App() {
     setMajors((prev) => prev.filter((m) => m.id !== majorId));
   };
 
-  const handleAddStudent = (newStudentData: Omit<Student, 'id'>) => {
+  const handleAddStudent = async (newStudentData: Omit<Student, 'id'>) => {
     const newStudent: Student = {
       ...newStudentData,
-      id: `s-${Date.now()}`
+      id: `s-${crypto.randomUUID()}`
     };
-    setStudents((prev) => [newStudent, ...prev]);
+    const createdStudent = await studentDatabase.create(newStudent);
+    setStudents((prev) => [createdStudent, ...prev]);
+    setDatabaseError('');
   };
 
-  const handleDeleteStudent = (id: string) => {
+  const handleUpdateStudent = async (updatedStudent: Student) => {
+    const savedStudent = await studentDatabase.update(updatedStudent);
+    setStudents((prev) => prev.map((student) => student.id === savedStudent.id ? savedStudent : student));
+    setSelectedStudentForModal(savedStudent);
+    setDatabaseError('');
+  };
+
+  const handleDeleteStudent = async (id: string) => {
+    await studentDatabase.remove([id]);
     setStudents((prev) => prev.filter((s) => s.id !== id));
     if (selectedStudentForModal?.id === id) {
       setSelectedStudentForModal(null);
     }
   };
 
-  const handleDeleteMultipleStudents = (ids: string[]) => {
+  const handleDeleteMultipleStudents = async (ids: string[]) => {
+    await studentDatabase.remove(ids);
     const idSet = new Set(ids);
     setStudents((prev) => prev.filter((s) => !idSet.has(s.id)));
     if (selectedStudentForModal && idSet.has(selectedStudentForModal.id)) {
@@ -298,45 +338,39 @@ export default function App() {
     }
   };
 
-  const handleDeleteAllStudents = () => {
+  const handleDeleteAllStudents = async () => {
+    if (students.length > 0) {
+      await studentDatabase.remove(students.map((student) => student.id));
+    }
     setStudents([]);
     setSelectedStudentForModal(null);
   };
 
-  const handleResetSampleData = () => {
-    setStudents(INITIAL_STUDENTS);
+  const handleResetSampleData = async () => {
+    if (students.length > 0) {
+      await studentDatabase.remove(students.map((student) => student.id));
+    }
+    const savedStudents = await studentDatabase.import(INITIAL_STUDENTS, 'replace');
+    setStudents(savedStudents);
     setClasses(INITIAL_CLASSES);
     setMajors(INITIAL_MAJORS);
   };
 
-  const handleImportStudents = (
+  const handleImportStudents = async (
     importedStudents: Omit<Student, 'id'>[],
     mode: 'append' | 'replace'
   ) => {
-    setStudents((prev) => {
-      if (mode === 'replace') {
-        const studentMap = new Map<string, Student>();
-        // Key by studentCode
-        prev.forEach((s) => studentMap.set(s.studentCode.trim().toLowerCase(), s));
+    const existingByCode = new Map(students.map((student) => [student.studentCode.trim().toLowerCase(), student]));
+    const values = importedStudents.map((student) => ({
+      ...student,
+      id: existingByCode.get(student.studentCode.trim().toLowerCase())?.id || `s-${crypto.randomUUID()}`
+    }));
+    const savedStudents = await studentDatabase.import(values, mode);
+    setStudents(savedStudents);
+  };
 
-        importedStudents.forEach((newS, idx) => {
-          const key = newS.studentCode.trim().toLowerCase();
-          const existing = studentMap.get(key);
-          const fullStudent: Student = {
-            ...newS,
-            id: existing ? existing.id : `s-imp-${Date.now()}-${idx}`
-          };
-          studentMap.set(key, fullStudent);
-        });
-        return Array.from(studentMap.values());
-      } else {
-        const newEntries: Student[] = importedStudents.map((newS, idx) => ({
-          ...newS,
-          id: `s-imp-${Date.now()}-${idx}`
-        }));
-        return [...newEntries, ...prev];
-      }
-    });
+  const handleCreateBackup = async () => {
+    await createSystemBackup({ students, classes, majors, attendances: savedAttendances });
   };
 
   if (!isLoggedIn) {
@@ -374,6 +408,11 @@ export default function App() {
 
         {/* View Content Router */}
         <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+          {databaseError && (
+            <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-300">
+              {databaseError} ទិន្នន័យក្នុងឧបករណ៍នៅតែអាចមើលបាន ប៉ុន្តែការផ្លាស់ប្ដូរថ្មីមិនទាន់អាចរក្សាទុកបានទេ។
+            </div>
+          )}
           <AnimatePresence mode="wait">
             <motion.div
               key={currentTab}
@@ -458,6 +497,7 @@ export default function App() {
         student={selectedStudentForModal}
         onClose={() => setSelectedStudentForModal(null)}
         onDeleteStudent={handleDeleteStudent}
+        onUpdateStudent={handleUpdateStudent}
       />
 
       <AddStudentModal
@@ -472,6 +512,7 @@ export default function App() {
         isOpen={isImportExcelOpen}
         onClose={() => setIsImportExcelOpen(false)}
         classes={classes}
+        students={students}
         onImportStudents={handleImportStudents}
       />
 
@@ -484,6 +525,7 @@ export default function App() {
         onUpdateAdminAvatar={handleUpdateAdminAvatar}
         onDeleteAllStudents={handleDeleteAllStudents}
         onResetSampleData={handleResetSampleData}
+        onCreateBackup={handleCreateBackup}
       />
     </div>
   );

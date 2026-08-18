@@ -11,7 +11,7 @@ interface AddStudentModalProps {
   generations?: Generation[];
   yearLevels?: YearLevel[];
   semesters?: Semester[];
-  onAddStudent: (newStudent: Omit<Student, 'id'>) => void;
+  onAddStudent: (newStudent: Omit<Student, 'id'>) => Promise<void> | void;
 }
 
 export const AddStudentModal: React.FC<AddStudentModalProps> = ({
@@ -43,10 +43,12 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
   const [parentName, setParentName] = useState('');
   const [parentPhone, setParentPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullNameKhmer.trim()) return;
 
@@ -58,29 +60,36 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
         ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuDKSsA5RfBKHnd9fKbBm7I7cwsmKGuy3n2lfoV7MnsdJuU_AgMa6wXcyB636GbFe3lJq7WedxR-G6gUFNhu4jfgE-Y_YbpQ31smyMc3DtSDPDs_LOxtOP7qiFxIxrCT9k8SoEjk45VRvG4lKu7XrYkAD3TBLBdwJNsPaYGhNgIPCyZxfABQDvacandQsEesgX9AuhzMLD9EPaAfWHlucdWOIYUftZAStrNAWY-eaAFnSm8mErVLf5Jq'
         : 'https://lh3.googleusercontent.com/aida-public/AB6AXuAigosMiuQAcOQlde05ZDHKu45HlEzY54FcwzwPGNaWP5pKYG6sH23tLJdSsCJrTyEgY8k96uVjfknEOv10-Z3WS134pOfiF1Z1DcoKaU3yX04qiU2jf6WRAAirQcVLurZjWjnR4jzezL3Ydu-NJZXcPlpghd88R5UJzmbYJBHDVmvblLxTVMAZR2kyf0o_uzBXxloZl37-Fn_luvPhHaTScFrVvZdIp8VDUxsHbma5b8jq1MyK2eEc';
 
-    onAddStudent({
-      studentCode,
-      fullNameKhmer,
-      fullNameEn: fullNameEn || fullNameKhmer,
-      chineseName,
-      gender,
-      dob,
-      major,
-      generation,
-      yearLevel,
-      semester,
-      shift,
-      classId,
-      className: selectedClassObj?.nameKhmer || 'ថ្នាក់គរុកោសល្យ ក',
-      initialKhmer,
-      avatarUrl: defaultAvatar,
-      phone,
-      parentName,
-      parentPhone,
-      address
-    });
-
-    onClose();
+    setIsSaving(true);
+    setSubmitError('');
+    try {
+      await onAddStudent({
+        studentCode,
+        fullNameKhmer,
+        fullNameEn: fullNameEn || fullNameKhmer,
+        chineseName,
+        gender,
+        dob,
+        major,
+        generation,
+        yearLevel,
+        semester,
+        shift,
+        classId,
+        className: selectedClassObj?.nameKhmer || 'ថ្នាក់គរុកោសល្យ ក',
+        initialKhmer,
+        avatarUrl: defaultAvatar,
+        phone,
+        parentName,
+        parentPhone,
+        address
+      });
+      onClose();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'មិនអាចរក្សាទុកនិស្សិតបានទេ។');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -397,6 +406,11 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
           </div>
 
           <div className="flex justify-end gap-3 pt-5 border-t border-zinc-100 dark:border-zinc-800">
+            {submitError && (
+              <p className="mr-auto self-center text-xs font-semibold text-rose-600 dark:text-rose-400">
+                {submitError}
+              </p>
+            )}
             <button
               type="button"
               onClick={onClose}
@@ -406,10 +420,11 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
             </button>
             <button
               type="submit"
+              disabled={isSaving}
               className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-bold shadow-lg hover:shadow-indigo-500/25 transition-all cursor-pointer active:scale-95 flex items-center gap-2"
             >
               <UserPlus className="w-4 h-4" />
-              <span>រក្សាទុកសិស្ស</span>
+              <span>{isSaving ? 'កំពុងរក្សាទុក...' : 'រក្សាទុកសិស្ស'}</span>
             </button>
           </div>
         </form>
