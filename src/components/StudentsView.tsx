@@ -27,6 +27,10 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { downloadStudentTemplate } from '../utils/exportUtils';
+import {
+  getStudentFilterOptions,
+  matchesStudentDirectoryFilters
+} from '../utils/studentFilters';
 
 interface StudentsViewProps {
   students: Student[];
@@ -66,26 +70,50 @@ export const StudentsView: React.FC<StudentsViewProps> = ({
   const [studentToDeleteSingle, setStudentToDeleteSingle] = useState<Student | null>(null);
   const [deleteError, setDeleteError] = useState('');
 
+  const majorOptions = useMemo(
+    () => getStudentFilterOptions(
+      majors.map((major) => major.nameKhmer),
+      students.map((student) => student.major)
+    ),
+    [majors, students]
+  );
+
+  const yearOptions = useMemo(
+    () => getStudentFilterOptions(
+      ['ឆ្នាំទី ១', 'ឆ្នាំទី ២', 'ឆ្នាំទី ៣', 'ឆ្នាំទី ៤'],
+      students.map((student) => student.yearLevel)
+    ),
+    [students]
+  );
+
+  const shiftOptions = useMemo(
+    () => getStudentFilterOptions(
+      ['វេនព្រឹក', 'វេនរសៀល', 'វេនយប់', 'វេនចុងសប្តាហ៍'],
+      students.map((student) => student.shift)
+    ),
+    [students]
+  );
+
   const filteredStudents = useMemo(() => {
-    return students.filter((s) => {
-      const q = searchTerm.toLowerCase();
-      const matchSearch =
-        s.fullNameKhmer.toLowerCase().includes(q) ||
-        s.fullNameEn.toLowerCase().includes(q) ||
-        (s.chineseName && s.chineseName.toLowerCase().includes(q)) ||
-        s.studentCode.toLowerCase().includes(q) ||
-        (s.major && s.major.toLowerCase().includes(q)) ||
-        (s.generation && s.generation.toLowerCase().includes(q)) ||
-        (s.shift && s.shift.toLowerCase().includes(q)) ||
-        (s.phone && s.phone.includes(searchTerm));
-
-      const matchMajor = selectedMajor === 'all' || s.major === selectedMajor;
-      const matchShift = selectedShift === 'all' || s.shift === selectedShift;
-      const matchYear = selectedYear === 'all' || s.yearLevel === selectedYear;
-
-      return matchSearch && matchMajor && matchShift && matchYear;
-    });
+    return students.filter((student) => matchesStudentDirectoryFilters(student, {
+      searchTerm,
+      major: selectedMajor,
+      yearLevel: selectedYear,
+      shift: selectedShift
+    }));
   }, [students, searchTerm, selectedMajor, selectedShift, selectedYear]);
+
+  const hasActiveFilters = searchTerm.trim() !== ''
+    || selectedMajor !== 'all'
+    || selectedYear !== 'all'
+    || selectedShift !== 'all';
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setSelectedMajor('all');
+    setSelectedYear('all');
+    setSelectedShift('all');
+  };
 
   // Handle selection toggling
   const handleToggleSelectAll = () => {
@@ -223,7 +251,7 @@ export const StudentsView: React.FC<StudentsViewProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="ស្វែងរកតាមឈ្មោះខ្មែរ, ឈ្មោះឡាតាំង, ឈ្មោះចិន (中文), អត្តលេខ, ជំនាញ..."
+              placeholder="ស្វែងរកក្នុងព័ត៌មានទាំង ១១ ចំណុច..."
               className="w-full pl-10 pr-4 py-2.5 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-xs sm:text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 placeholder-zinc-400 transition-all"
             />
           </div>
@@ -270,20 +298,9 @@ export const StudentsView: React.FC<StudentsViewProps> = ({
               className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl px-3 py-2 text-xs text-zinc-900 dark:text-white font-medium focus:border-indigo-500 outline-none cursor-pointer transition-all"
             >
               <option value="all">គ្រប់ជំនាញទាំងអស់ (All Majors)</option>
-              {majors.length > 0 ? (
-                majors.map((m) => (
-                  <option key={m.id} value={m.nameKhmer}>
-                    {m.nameKhmer}
-                  </option>
-                ))
-              ) : (
-                <>
-                  <option value="គរុកោសល្យភាសាចិន">គរុកោសល្យភាសាចិន</option>
-                  <option value="អក្សរសាស្ត្រចិន">អក្សរសាស្ត្រចិន</option>
-                  <option value="បកប្រែភាសាចិន">បកប្រែភាសាចិន</option>
-                  <option value="ភាសាចិនពាណិជ្ជកម្ម">ភាសាចិនពាណិជ្ជកម្ម</option>
-                </>
-              )}
+              {majorOptions.map((major) => (
+                <option key={major} value={major}>{major}</option>
+              ))}
             </select>
           </div>
 
@@ -298,10 +315,9 @@ export const StudentsView: React.FC<StudentsViewProps> = ({
               className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl px-3 py-2 text-xs text-zinc-900 dark:text-white font-medium focus:border-indigo-500 outline-none cursor-pointer transition-all"
             >
               <option value="all">គ្រប់កម្រិតឆ្នាំ (All Years)</option>
-              <option value="ឆ្នាំទី ១">ឆ្នាំទី ១ (Year 1)</option>
-              <option value="ឆ្នាំទី ២">ឆ្នាំទី ២ (Year 2)</option>
-              <option value="ឆ្នាំទី ៣">ឆ្នាំទី ៣ (Year 3)</option>
-              <option value="ឆ្នាំទី ៤">ឆ្នាំទី ៤ (Year 4)</option>
+              {yearOptions.map((year) => (
+                <option key={year} value={year}>{year}</option>
+              ))}
             </select>
           </div>
 
@@ -316,13 +332,28 @@ export const StudentsView: React.FC<StudentsViewProps> = ({
               className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl px-3 py-2 text-xs text-zinc-900 dark:text-white font-medium focus:border-indigo-500 outline-none cursor-pointer transition-all"
             >
               <option value="all">គ្រប់វេនសិក្សា (All Shifts)</option>
-              <option value="វេនព្រឹក">វេនព្រឹក (Morning)</option>
-              <option value="វេនរសៀល">វេនរសៀល (Afternoon)</option>
-              <option value="វេនយប់">វេនយប់ (Evening)</option>
-              <option value="វេនចុងសប្តាហ៍">វេនចុងសប្តាហ៍ (Weekend)</option>
+              {shiftOptions.map((shift) => (
+                <option key={shift} value={shift}>{shift}</option>
+              ))}
             </select>
           </div>
         </div>
+
+        {hasActiveFilters && (
+          <div className="flex items-center justify-between gap-3 rounded-2xl bg-indigo-50 px-3.5 py-2.5 text-xs dark:bg-indigo-950/40">
+            <span className="flex items-center gap-2 font-semibold text-indigo-700 dark:text-indigo-300">
+              <Filter className="h-3.5 w-3.5" />
+              កំពុងប្រើតម្រងលើបញ្ជីសិស្ស
+            </span>
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="rounded-xl border border-indigo-200 bg-white px-3 py-1.5 font-bold text-indigo-700 transition-colors hover:bg-indigo-100 dark:border-indigo-800 dark:bg-zinc-900 dark:text-indigo-300 dark:hover:bg-indigo-950"
+            >
+              សម្អាតតម្រង
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Selected Items Actions Toolbar */}
