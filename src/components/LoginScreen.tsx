@@ -102,7 +102,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Admin"
+                  placeholder=""
                   className="w-full bg-[#f8f9ff] dark:bg-[#18284e] border border-[#c4c5d5] dark:border-[#283958] rounded-2xl py-3 pl-11 pr-4 text-[#0b1c30] dark:text-white text-sm focus:outline-none focus:border-[#00288e] dark:focus:border-[#8da4ff] focus:ring-2 focus:ring-[#00288e]/20 transition-all placeholder-[#757684]"
                   required
                 />
@@ -122,7 +122,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="admin123"
+                  placeholder=""
                   className="w-full bg-[#f8f9ff] dark:bg-[#18284e] border border-[#c4c5d5] dark:border-[#283958] rounded-2xl py-3 pl-11 pr-11 text-[#0b1c30] dark:text-white text-sm focus:outline-none focus:border-[#00288e] dark:focus:border-[#8da4ff] focus:ring-2 focus:ring-[#00288e]/20 transition-all placeholder-[#757684]"
                   required
                 />
