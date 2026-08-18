@@ -56,7 +56,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
             <div className="w-20 h-20 bg-[#eff4ff] dark:bg-[#18284e] rounded-3xl flex items-center justify-center mb-4 shadow-xs border border-[#c4c5d5]/50 dark:border-[#283958] p-3 transition-transform hover:scale-105">
               <img
                 src={APP_ASSETS.loginLogo}
-                alt="វិ.គរុកោសល្យភាសាចិន Logo"
+                alt="src/assets/images/icetilogo.jpg"
                 className="w-12 h-12 object-contain"
                 referrerPolicy="no-referrer"
               />
