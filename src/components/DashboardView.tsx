@@ -99,7 +99,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span>SYSTEM / ACADEMIC OVERVIEW</span>
               </span>
               <span className="hidden sm:inline-flex items-center px-2.5 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full text-[10px] font-bold">
-                ឆ្នាំសិក្សា ២០២៣-២០២៤
+                ឆ្នាំសិក្សា ២០២៦-២០២៧
               </span>
             </div>
 
@@ -107,7 +107,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               សូមស្វាគមន៍, {userName}
             </h2>
             <p className="text-sm sm:text-base text-zinc-400 max-w-xl font-normal leading-relaxed">
-              ទិដ្ឋភាពទូទៅនៃដំណើរការសិក្សា ស្ថិតិអវត្តមាន និងការកត់ត្រាវត្តមានសិស្សប្រចាំថ្ងៃនៅវិទ្យាល័យ។
+              ទិដ្ឋភាពទូទៅនៃដំណើរការសិក្សា ស្ថិតិអវត្តមាន និងការកត់ត្រាវត្តមានសិស្សប្រចាំថ្ងៃនៅវិទ្យាស្ថានគរុកោសល្យភាសាចិន។
             </p>
           </div>
 
