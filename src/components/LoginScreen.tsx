@@ -216,9 +216,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
               ) : (
                 <input
                   type="text"
-                  placeholder="Admin ឬ admin@pedagogy.edu.kh"
+                  placeholder="Admin ឬ ros.rithyvannratha@gmail.com"
                   className="w-full bg-[#f8f9ff] dark:bg-[#18284e] border border-[#c4c5d5] dark:border-[#283958] rounded-2xl p-2.5 text-xs sm:text-sm mb-4"
-                  defaultValue="admin@pedagogy.edu.kh"
+                  defaultValue="ros.rithyvannratha@gmail.com"
                 />
               )}
               <div className="flex justify-end gap-2">
@@ -270,7 +270,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                     សម្រាប់ការគាំទ្រ ឬការស្នើសុំគណនីចូលប្រើប្រាស់ សូមទាក់ទងផ្នែកព័ត៌មានវិទ្យារបស់វិទ្យាស្ថាន។
                   </p>
                   <p className="font-semibold text-[#00288e] dark:text-[#8da4ff]">
-                    អ៊ីមែល៖ it-support@pedagogy.edu.kh | ទូរស័ព្ទ៖ 023 888 999
+                    អ៊ីមែល៖ ros.rithyvannratha@gmail.com | ទូរស័ព្ទ៖ 087 494 969
                   </p>
                 </div>
               </div>
