@@ -50,7 +50,7 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
   const [viewMode, setViewMode] = useState<ViewMode>('daily');
   
   // Date states
-  const [selectedDate, setSelectedDate] = useState<string>('2026-10-25');
+  const [selectedDate, setSelectedDate] = useState<string>('2026-08-18');
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [selectedMonth, setSelectedMonth] = useState<number>(10); // 1-12
   const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('2026-2027');
@@ -76,28 +76,7 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
   // Key for daily local record lookups: `${selectedClassId}_${selectedDate}`
   const storageKey = `${selectedClassId}_${selectedDate}`;
 
-  // Pre-seed mock history for absences count across dates so that warning (>5 absences) triggers realistically
-  const studentAbsenceStats = useMemo(() => {
-    // Base preset absences to ensure realistic demo:
-    // s-006 (ពេជ្រ សំណាង) -> 6 absences (Exceeds 5!)
-    // s-004 (ចាន់ មករា) -> 6 absences (Exceeds 5!)
-    // s-002 (ចាន់ សុផល) -> 4 absences
-    // others -> 0 to 2 absences
-    const baseAbsences: Record<string, { count: number; dates: string[] }> = {
-      's-006': {
-        count: 6,
-        dates: ['2026-10-02', '2026-10-05', '2026-10-09', '2026-10-14', '2026-10-18', '2026-10-22']
-      },
-      's-004': {
-        count: 6,
-        dates: ['2026-10-01', '2026-10-04', '2026-10-08', '2026-10-11', '2026-10-15', '2026-10-19']
-      },
-      's-002': {
-        count: 4,
-        dates: ['2026-10-03', '2026-10-10', '2026-10-16', '2026-10-21']
-      }
-    };
-
+ 
     // Calculate dynamically from savedAttendances for each student
     const result: Record<
       string,
