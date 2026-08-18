@@ -35,9 +35,9 @@ interface StudentsViewProps {
   onOpenStudentModal: (student: Student) => void;
   onOpenAddStudent: () => void;
   onOpenImportExcel: () => void;
-  onDeleteStudent?: (id: string) => void;
-  onDeleteMultipleStudents?: (ids: string[]) => void;
-  onDeleteAllStudents?: () => void;
+  onDeleteStudent?: (id: string) => Promise<void> | void;
+  onDeleteMultipleStudents?: (ids: string[]) => Promise<void> | void;
+  onDeleteAllStudents?: () => Promise<void> | void;
 }
 
 export const StudentsView: React.FC<StudentsViewProps> = ({
@@ -64,6 +64,7 @@ export const StudentsView: React.FC<StudentsViewProps> = ({
   const [confirmDeleteAllOpen, setConfirmDeleteAllOpen] = useState(false);
   const [confirmDeleteSelectedOpen, setConfirmDeleteSelectedOpen] = useState(false);
   const [studentToDeleteSingle, setStudentToDeleteSingle] = useState<Student | null>(null);
+  const [deleteError, setDeleteError] = useState('');
 
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
@@ -106,28 +107,43 @@ export const StudentsView: React.FC<StudentsViewProps> = ({
     );
   };
 
-  const handleConfirmDeleteAll = () => {
-    if (onDeleteAllStudents) {
-      onDeleteAllStudents();
+  const handleConfirmDeleteAll = async () => {
+    try {
+      if (onDeleteAllStudents) {
+        await onDeleteAllStudents();
+      }
+      setSelectedIds([]);
+      setConfirmDeleteAllOpen(false);
+      setDeleteError('');
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'មិនអាចលុបទិន្នន័យបានទេ។');
     }
-    setSelectedIds([]);
-    setConfirmDeleteAllOpen(false);
   };
 
-  const handleConfirmDeleteSelected = () => {
-    if (onDeleteMultipleStudents && selectedIds.length > 0) {
-      onDeleteMultipleStudents(selectedIds);
+  const handleConfirmDeleteSelected = async () => {
+    try {
+      if (onDeleteMultipleStudents && selectedIds.length > 0) {
+        await onDeleteMultipleStudents(selectedIds);
+      }
+      setSelectedIds([]);
+      setConfirmDeleteSelectedOpen(false);
+      setDeleteError('');
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'មិនអាចលុបទិន្នន័យបានទេ។');
     }
-    setSelectedIds([]);
-    setConfirmDeleteSelectedOpen(false);
   };
 
-  const handleConfirmDeleteSingle = () => {
-    if (studentToDeleteSingle && onDeleteStudent) {
-      onDeleteStudent(studentToDeleteSingle.id);
-      setSelectedIds((prev) => prev.filter((id) => id !== studentToDeleteSingle.id));
+  const handleConfirmDeleteSingle = async () => {
+    try {
+      if (studentToDeleteSingle && onDeleteStudent) {
+        await onDeleteStudent(studentToDeleteSingle.id);
+        setSelectedIds((prev) => prev.filter((id) => id !== studentToDeleteSingle.id));
+      }
+      setStudentToDeleteSingle(null);
+      setDeleteError('');
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'មិនអាចលុបទិន្នន័យបានទេ។');
     }
-    setStudentToDeleteSingle(null);
   };
 
   const isAllVisibleSelected =
@@ -346,6 +362,11 @@ export const StudentsView: React.FC<StudentsViewProps> = ({
       )}
 
       {/* Results Count */}
+      {deleteError && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-300">
+          {deleteError}
+        </div>
+      )}
       <div className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 px-1 flex items-center justify-between">
         <span>
           សរុបសិស្សដែលស្វែងរកឃើញ: <span className="text-indigo-600 dark:text-indigo-400 font-bold">{filteredStudents.length} នាក់</span>

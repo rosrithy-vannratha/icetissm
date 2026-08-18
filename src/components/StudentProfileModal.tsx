@@ -26,7 +26,7 @@ interface StudentProfileModalProps {
   student: Student | null;
   onClose: () => void;
 
-  onDeleteStudent?: (id: string) => void;
+  onDeleteStudent?: (id: string) => Promise<void> | void;
 
   /*
    * Callback សម្រាប់ Save
@@ -34,7 +34,7 @@ interface StudentProfileModalProps {
    * Parent Component នឹងទទួលបាន
    * student ដែលបានកែប្រែ
    */
-  onUpdateStudent?: (student: Student) => void;
+  onUpdateStudent?: (student: Student) => Promise<void> | void;
 
   absenceCount?: number;
   onOpenWarningNotice?: () => void;
@@ -182,7 +182,7 @@ export const StudentProfileModal: React.FC<
    * Save
    * ---------------------------------------------------------
    */
-  const handleSave = () => {
+  const handleSave = async () => {
     const validationError =
       validateStudent();
 
@@ -274,7 +274,7 @@ export const StudentProfileModal: React.FC<
       /*
        * Send updated student to Parent
        */
-      onUpdateStudent(cleanedStudent);
+      await onUpdateStudent(cleanedStudent);
 
       /*
        * Update local state
@@ -304,13 +304,18 @@ export const StudentProfileModal: React.FC<
    * Delete
    * ---------------------------------------------------------
    */
-  const handleConfirmDelete = () => {
-    if (onDeleteStudent) {
-      onDeleteStudent(student.id);
-    }
+  const handleConfirmDelete = async () => {
+    try {
+      if (onDeleteStudent) {
+        await onDeleteStudent(student.id);
+      }
 
-    setShowConfirmDelete(false);
-    onClose();
+      setShowConfirmDelete(false);
+      onClose();
+    } catch (error) {
+      setShowConfirmDelete(false);
+      setSaveError(error instanceof Error ? error.message : 'មិនអាចលុបទិន្នន័យបានទេ។');
+    }
   };
 
   /*
