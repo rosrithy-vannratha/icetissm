@@ -83,8 +83,8 @@ export const INITIAL_ACADEMIC_YEARS: AcademicYear[] = [
     nameEn: 'Academic Year 2026-2027',
     startDate: '2026-10-01',
     endDate: '2027-07-31',
-    isCurrent: true,
-    description: 'ឆ្នាំសិក្សាបច្ចុប្បន្នដែលកំពុងដំណើរការ'
+    isCurrent: false,
+    description: 'ឆ្នាំសិក្សាថ្មីដែលបានកំណត់សម្រាប់វគ្គបន្ទាប់'
   },
   {
     id: 'ay-2027',

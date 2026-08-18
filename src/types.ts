@@ -115,6 +115,16 @@ export interface DailyAttendanceState {
   submittedBy?: string;
 }
 
+export interface TeacherAttendanceRecord {
+  teacherName: string;
+  attendanceDate: string;
+  status: AttendanceStatus;
+  checkIn?: string;
+  checkOut?: string;
+  note?: string;
+  recordedBy?: string;
+}
+
 export interface MonthlyTrendData {
   monthKhmer: string;
   monthEn: string;
