@@ -52,7 +52,7 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
   // Date states
   const [selectedDate, setSelectedDate] = useState<string>('2026-08-18');
   const [selectedYear, setSelectedYear] = useState<number>(2026);
-  const [selectedMonth, setSelectedMonth] = useState<number>(10); // 1-12
+  const [selectedMonth, setSelectedMonth] = useState<number>(08); // 1-12
   const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('2026-2027');
 
   const [attendanceMap, setAttendanceMap] = useState<
