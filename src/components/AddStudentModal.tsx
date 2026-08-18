@@ -239,7 +239,7 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                     ))
                   ) : (
                     <>
-                      <option value="គរុកោសល្យភាសាចិន">គរុកោសល្យភាសាចិន (Chinese Pedagogy)</option>
+                      <option value="គរុកោសល្យភាសាចិន">គរុកោសល្យភាសាចិន (Chinese international education)</option>
                       <option value="បកប្រែភាសាចិន">បកប្រែភាសាចិន (Chinese Translation)</option>
                       <option value="ពាណិជ្ជកម្មចិន">ពាណិជ្ជកម្មចិន (Business Chinese)</option>
                       <option value="ភាសាចិនទូទៅ">ភាសាចិនទូទៅ (General Chinese)</option>
@@ -271,6 +271,8 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                       <option value="ជំនាន់ទី ៣">ជំនាន់ទី ៣ (Gen 3)</option>
                       <option value="ជំនាន់ទី ៤">ជំនាន់ទី ៤ (Gen 4)</option>
                       <option value="ជំនាន់ទី ៥">ជំនាន់ទី ៥ (Gen 5)</option>
+                      <option value="ជំនាន់ទី ៦">ជំនាន់ទី ៦ (Gen 6)</option>
+                      <option value="ជំនាន់ទី ៧">ជំនាន់ទី ៧ (Gen ​7)</option>
                     </>
                   )}
                 </select>
@@ -338,9 +340,9 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                   onChange={(e) => setShift(e.target.value)}
                   className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl px-3.5 py-2 text-xs sm:text-sm text-zinc-900 dark:text-white font-medium focus:outline-none focus:border-indigo-500 cursor-pointer transition-all"
                 >
-                  <option value="វេនព្រឹក">វេនព្រឹក (Morning 07:30 - 11:30)</option>
-                  <option value="វេនរសៀល">វេនរសៀល (Afternoon 13:30 - 17:30)</option>
-                  <option value="វេនយប់">វេនយប់ (Evening 17:30 - 20:30)</option>
+                  <option value="វេនព្រឹក">វេនព្រឹក (Morning 08:00 - 11:00)</option>
+                  <option value="វេនរសៀល">វេនរសៀល (Afternoon 14:00 - 17:00)</option>
+                  <option value="វេនយប់">វេនយប់ (Evening 17:30 - 20:45)</option>
                   <option value="វេនចុងសប្តាហ៍">វេនចុងសប្តាហ៍ (Weekend Sat-Sun)</option>
                 </select>
               </div>
@@ -369,7 +371,7 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                លេខទូរស័ព្ទសិស្ស
+                លេខទូរសព្ទសិស្ស
               </label>
               <input
                 type="text"
