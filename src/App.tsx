@@ -4,11 +4,30 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { UserRole, Student, ClassRoom, Major, AttendanceStatus } from './types';
-import { INITIAL_STUDENTS, INITIAL_CLASSES, INITIAL_MAJORS, APP_ASSETS } from './data/mockData';
+import {
+  UserRole,
+  Student,
+  ClassRoom,
+  Major,
+  AttendanceStatus,
+  Generation,
+  AcademicYear,
+  YearLevel,
+  Semester
+} from './types';
+import {
+  INITIAL_STUDENTS,
+  INITIAL_CLASSES,
+  INITIAL_MAJORS,
+  INITIAL_GENERATIONS,
+  INITIAL_ACADEMIC_YEARS,
+  INITIAL_YEAR_LEVELS,
+  INITIAL_SEMESTERS,
+  APP_ASSETS
+} from './data/mockData';
 import { Sidebar, NavTab } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
-import { AttendanceView } from './components/AttendanceView';
+import { AttendanceWorkspace } from './components/AttendanceWorkspace';
 import { ReportsView } from './components/ReportsView';
 import { DashboardView } from './components/DashboardView';
 import { StudentsView } from './components/StudentsView';
@@ -19,8 +38,9 @@ import { StudentProfileModal } from './components/StudentProfileModal';
 import { AddStudentModal } from './components/AddStudentModal';
 import { ImportStudentsModal } from './components/ImportStudentsModal';
 import { SettingsModal } from './components/SettingsModal';
+import { AcademicStructureView } from './components/AcademicStructureView';
 import { motion, AnimatePresence } from 'motion/react';
-import { createSystemBackup, studentDatabase } from './services/database';
+import { academicDatabase, createSystemBackup, studentDatabase } from './services/database';
 
 export default function App() {
   // Authentication State - Default to Login Screen on initial entry
@@ -128,6 +148,11 @@ export default function App() {
     }
   });
 
+  const [generations, setGenerations] = useState<Generation[]>(INITIAL_GENERATIONS);
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>(INITIAL_ACADEMIC_YEARS);
+  const [yearLevels, setYearLevels] = useState<YearLevel[]>(INITIAL_YEAR_LEVELS);
+  const [semesters, setSemesters] = useState<Semester[]>(INITIAL_SEMESTERS);
+
   const [savedAttendances, setSavedAttendances] = useState<
     Record<string, Record<string, { status: AttendanceStatus; note?: string }>>
   >(() => {
@@ -164,6 +189,22 @@ export default function App() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    academicDatabase.list()
+      .then((data) => {
+        if (cancelled) return;
+        setGenerations(data.generations);
+        setAcademicYears(data.academicYears);
+        setYearLevels(data.yearLevels);
+        setSemesters(data.semesters);
+      })
+      .catch((error) => {
+        if (!cancelled) setDatabaseError(error instanceof Error ? error.message : 'មិនអាចទាញទិន្នន័យវគ្គ និងជំនាន់បានទេ។');
+      });
+    return () => { cancelled = true; };
   }, []);
 
   // Dark mode class sync
@@ -245,6 +286,66 @@ export default function App() {
       ...prev,
       [key]: records
     }));
+  };
+
+  const handleAddGeneration = async (data: Omit<Generation, 'id'>) => {
+    const created = await academicDatabase.create('generations', { ...data, id: `gen-${crypto.randomUUID()}` });
+    setGenerations((current) => [...current, created]);
+  };
+
+  const handleUpdateGeneration = async (item: Generation) => {
+    const updated = await academicDatabase.update('generations', item);
+    setGenerations((current) => current.map((entry) => entry.id === updated.id ? updated : entry));
+  };
+
+  const handleDeleteGeneration = async (id: string) => {
+    await academicDatabase.remove('generations', id);
+    setGenerations((current) => current.filter((entry) => entry.id !== id));
+  };
+
+  const handleAddAcademicYear = async (data: Omit<AcademicYear, 'id'>) => {
+    const created = await academicDatabase.create('academicYears', { ...data, id: `ay-${crypto.randomUUID()}` });
+    setAcademicYears((current) => [...current, created]);
+  };
+
+  const handleUpdateAcademicYear = async (item: AcademicYear) => {
+    const updated = await academicDatabase.update('academicYears', item);
+    setAcademicYears((current) => current.map((entry) => entry.id === updated.id ? updated : entry));
+  };
+
+  const handleDeleteAcademicYear = async (id: string) => {
+    await academicDatabase.remove('academicYears', id);
+    setAcademicYears((current) => current.filter((entry) => entry.id !== id));
+  };
+
+  const handleAddYearLevel = async (data: Omit<YearLevel, 'id'>) => {
+    const created = await academicDatabase.create('yearLevels', { ...data, id: `yl-${crypto.randomUUID()}` });
+    setYearLevels((current) => [...current, created]);
+  };
+
+  const handleUpdateYearLevel = async (item: YearLevel) => {
+    const updated = await academicDatabase.update('yearLevels', item);
+    setYearLevels((current) => current.map((entry) => entry.id === updated.id ? updated : entry));
+  };
+
+  const handleDeleteYearLevel = async (id: string) => {
+    await academicDatabase.remove('yearLevels', id);
+    setYearLevels((current) => current.filter((entry) => entry.id !== id));
+  };
+
+  const handleAddSemester = async (data: Omit<Semester, 'id'>) => {
+    const created = await academicDatabase.create('semesters', { ...data, id: `sem-${crypto.randomUUID()}` });
+    setSemesters((current) => [...current, created]);
+  };
+
+  const handleUpdateSemester = async (item: Semester) => {
+    const updated = await academicDatabase.update('semesters', item);
+    setSemesters((current) => current.map((entry) => entry.id === updated.id ? updated : entry));
+  };
+
+  const handleDeleteSemester = async (id: string) => {
+    await academicDatabase.remove('semesters', id);
+    setSemesters((current) => current.filter((entry) => entry.id !== id));
   };
 
   const handleAddClass = (newClassData: Omit<ClassRoom, 'id'>) => {
@@ -360,7 +461,7 @@ export default function App() {
     importedStudents: Omit<Student, 'id'>[],
     mode: 'append' | 'replace'
   ) => {
-    const existingByCode = new Map(students.map((student) => [student.studentCode.trim().toLowerCase(), student]));
+    const existingByCode = new Map<string, Student>(students.map((student) => [student.studentCode.trim().toLowerCase(), student]));
     const values = importedStudents.map((student) => ({
       ...student,
       id: existingByCode.get(student.studentCode.trim().toLowerCase())?.id || `s-${crypto.randomUUID()}`
@@ -422,9 +523,10 @@ export default function App() {
               transition={{ duration: 0.18 }}
             >
               {currentTab === 'attendance' && (
-                <AttendanceView
+                <AttendanceWorkspace
                   students={students}
                   classes={classes}
+                  recordedBy={userName}
                   onSaveAttendance={handleSaveAttendance}
                   savedAttendances={savedAttendances}
                   onOpenStudentModal={setSelectedStudentForModal}
@@ -485,6 +587,28 @@ export default function App() {
                   onAddMajor={handleAddMajor}
                   onUpdateMajor={handleUpdateMajor}
                   onDeleteMajor={handleDeleteMajor}
+                />
+              )}
+              {currentTab === 'terms' && (
+                <AcademicStructureView
+                  generations={generations}
+                  academicYears={academicYears}
+                  yearLevels={yearLevels}
+                  semesters={semesters}
+                  students={students}
+                  classes={classes}
+                  onAddGeneration={handleAddGeneration}
+                  onUpdateGeneration={handleUpdateGeneration}
+                  onDeleteGeneration={handleDeleteGeneration}
+                  onAddAcademicYear={handleAddAcademicYear}
+                  onUpdateAcademicYear={handleUpdateAcademicYear}
+                  onDeleteAcademicYear={handleDeleteAcademicYear}
+                  onAddYearLevel={handleAddYearLevel}
+                  onUpdateYearLevel={handleUpdateYearLevel}
+                  onDeleteYearLevel={handleDeleteYearLevel}
+                  onAddSemester={handleAddSemester}
+                  onUpdateSemester={handleUpdateSemester}
+                  onDeleteSemester={handleDeleteSemester}
                 />
               )}
             </motion.div>

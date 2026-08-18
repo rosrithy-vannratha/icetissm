@@ -1,4 +1,4 @@
-import { index, jsonb, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const students = pgTable(
   'students',
@@ -47,3 +47,60 @@ export const systemBackups = pgTable('system_backups', {
   snapshot: jsonb('snapshot').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 });
+
+export const generations = pgTable('generations', {
+  id: text('id').primaryKey(),
+  nameKhmer: text('name_khmer').notNull(),
+  nameEn: text('name_en').notNull().default(''),
+  startYear: text('start_year').notNull().default(''),
+  endYear: text('end_year').notNull().default(''),
+  status: text('status').notNull().default('active'),
+  description: text('description').notNull().default('')
+});
+
+export const academicYears = pgTable('academic_years', {
+  id: text('id').primaryKey(),
+  nameKhmer: text('name_khmer').notNull(),
+  nameEn: text('name_en').notNull().default(''),
+  startDate: text('start_date').notNull().default(''),
+  endDate: text('end_date').notNull().default(''),
+  isCurrent: boolean('is_current').notNull().default(false),
+  description: text('description').notNull().default('')
+});
+
+export const yearLevels = pgTable('year_levels', {
+  id: text('id').primaryKey(),
+  nameKhmer: text('name_khmer').notNull(),
+  nameEn: text('name_en').notNull().default(''),
+  levelNumber: integer('level_number').notNull(),
+  description: text('description').notNull().default('')
+});
+
+export const semesters = pgTable('semesters', {
+  id: text('id').primaryKey(),
+  nameKhmer: text('name_khmer').notNull(),
+  nameEn: text('name_en').notNull().default(''),
+  semesterNumber: integer('semester_number').notNull(),
+  isCurrent: boolean('is_current').notNull().default(false),
+  description: text('description').notNull().default('')
+});
+
+export const teacherAttendances = pgTable(
+  'teacher_attendances',
+  {
+    id: serial('id').primaryKey(),
+    teacherName: text('teacher_name').notNull(),
+    attendanceDate: text('attendance_date').notNull(),
+    status: text('status').notNull(),
+    checkIn: text('check_in').notNull().default(''),
+    checkOut: text('check_out').notNull().default(''),
+    note: text('note').notNull().default(''),
+    recordedBy: text('recorded_by').notNull().default(''),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex('teacher_attendance_name_date_idx').on(table.teacherName, table.attendanceDate),
+    index('teacher_attendance_date_idx').on(table.attendanceDate)
+  ]
+);
